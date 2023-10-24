@@ -24,12 +24,16 @@ def login():
     query = client.table('formulario').select('*').eq('correo', username).eq('contraseña', password)
     res = query.execute()
 
-    # Si el usuario existe y la contraseña es correcta, se devuelve un token JWT
+    # Si el usuario existe y la contraseña es correcta, obtenemos el nombre del usuario
     if len(res.data) == 1:
-        access_token = create_access_token(identity=username)
-        print(access_token)
-        return jsonify(access_token=access_token), 200
+        user_data = res.data[0]
+        user_name = user_data.get('nombre')
 
+        # Crear un token JWT con el nombre del usuario como claim adicional
+        access_token = create_access_token(identity=username, additional_claims={'nombre': user_name})
+        print(access_token)
+
+        return jsonify(access_token=access_token, nombre=user_name), 200
     # Si no se encontró el usuario o la contraseña es incorrecta, se devuelve un error 401
     return jsonify({"msg": "Credenciales inválidas"}), 401
 
